@@ -19,6 +19,14 @@ namespace AdventOfCode.Year2023
         public void TestSolvePart2()
             => Assert.Equal(54418, SolvePart2(File.ReadLines("Inputs/2023/Day1.txt").ToArray()));
 
+        [Fact]
+        public void TestReplaceNumberNamesWithDigits()
+        {
+            var result = ReplaceNumberNamesWithDigits("oneighthree");
+
+            Assert.Equal("o1e8t3e", result);
+        }
+
 
         public static int SolvePart1(string[] reports) => reports.Select(GetCoordinateFromRow).Sum();
 
@@ -28,41 +36,25 @@ namespace AdventOfCode.Year2023
                 .Select(GetCoordinateFromRow)
                 .Sum();
 
-        private static string ReplaceNumberNamesWithDigits(string row)
+        private static readonly Dictionary<string, string> _numberNames = new()
         {
-            var numberNames = new Dictionary<string, string>
-            {
-                {"one", "1"},
-                {"two", "2"},
-                {"three", "3"},
-                {"four", "4"},
-                {"five", "5"},
-                {"six", "6"},
-                {"seven", "7"},
-                {"eight", "8"},
-                {"nine", "9"},
-            };
+            {"one", "1"},
+            {"two", "2"},
+            {"three", "3"},
+            {"four", "4"},
+            {"five", "5"},
+            {"six", "6"},
+            {"seven", "7"},
+            {"eight", "8"},
+            {"nine", "9"},
+        };
 
-            var result = row;
-
-            foreach (var (numberName, digit) in numberNames)
-            {
-                var numberNameLength = numberName.Length;
-                
-                for(int index = 0; index + numberNameLength <= result.Length; index++)
-                {
-                    var letters = result[index..(index + numberNameLength)];
-                    if (letters == numberName)
-                    {
-                        result = result.Insert(index+2, digit);
-                        index += 2;
-                    }
-                        
-                }
-            }
-            
-            return result;
-        }
+        private static string ReplaceNumberNamesWithDigits(string row)
+            => _numberNames
+                .Aggregate(
+                    row, 
+                    (current, pair) => current.Replace(pair.Key, $"{pair.Key[0]}{pair.Value}{pair.Key[^1]}")
+                );
 
         private static int GetCoordinateFromRow(string row)
         {
