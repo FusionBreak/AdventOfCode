@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -19,8 +19,7 @@ namespace AdventOfCode.Year2023
 
         [Fact]
         public void TestSolvePart2()
-            => Assert.Equal(-1, SolvePart2(File.ReadLines("Inputs/2023/Day2.txt").ToArray()));
-
+            => Assert.Equal(56580, SolvePart2(File.ReadLines("Inputs/2023/Day2.txt").ToArray()));
 
         public static int SolvePart1(string[] reports) 
             => reports
@@ -28,21 +27,44 @@ namespace AdventOfCode.Year2023
                 .Where(IsValidGame)
                 .Sum(g => g.Id);
 
-        public int SolvePart2(string[] reports) => throw new NotImplementedException();
+        public int SolvePart2(string[] reports) 
+            => reports
+                .Select(Game.Parse)
+                .Select(GetFewestNumberOfCubes)
+                .Select(fewest => fewest.Red * fewest.Green * fewest.Blue)
+                .Aggregate((a, b) => a + b);
+
+        private static (int Red, int Green, int Blue) GetFewestNumberOfCubes(Game game)
+        {
+            var redCubes = GetFewestNumberOfCubesOfColor(game, Color.Red);
+            var greenCubes = GetFewestNumberOfCubesOfColor(game, Color.Green);
+            var blueCubes = GetFewestNumberOfCubesOfColor(game, Color.Blue);
+            return (redCubes, greenCubes, blueCubes);
+        }
+
+        private static int GetFewestNumberOfCubesOfColor(Game game, Color color)
+            => game.Hands
+                .SelectMany(h => h.Sets.Where(s => s.Color == color))
+                .OrderBy(s => s.Count)
+                .Last()
+                .Count;
 
         private static bool IsValidGame(Game game)
             => game.Hands.All(IsValidHand);
 
         private static bool IsValidHand(Hand hand)
         {
-            var redCubes = hand.Sets.Where(s => s.Color == Color.Red).Sum(s => s.Count);
-            var greenCubes = hand.Sets.Where(s => s.Color == Color.Green).Sum(s => s.Count);
-            var blueCubes = hand.Sets.Where(s => s.Color == Color.Blue).Sum(s => s.Count);
+            var redCubes = GetCountOfColor(hand.Sets, Color.Red);
+            var greenCubes = GetCountOfColor(hand.Sets, Color.Green);
+            var blueCubes = GetCountOfColor(hand.Sets, Color.Blue);
 
             return redCubes <= MaxNumberOfRedCubes
                 && greenCubes <= MaxNumberOfGreenCubes
                 && blueCubes <= MaxNumberOfBlueCubes;
-        }   
+        }
+
+        private static int GetCountOfColor(IEnumerable<Set> sets, Color color)
+            => sets.Where(s => s.Color == color).Sum(s => s.Count);
 
         private record Game(int Id, IEnumerable<Hand> Hands)
         {
